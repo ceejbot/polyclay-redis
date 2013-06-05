@@ -3,6 +3,8 @@ polyclay-redis
 
 A redis persistence adapter for [Polyclay](https://github.com/ceejbot/polyclay).
 
+[![Build Status](https://secure.travis-ci.org/ceejbot/polyclay-redis.png)](http://travis-ci.org/ceejbot/polyclay-redis)
+
 ## How-to
 
 For the redis adapter, specify host & port of your redis server. The 'dbname' option is used to namespace keys. The redis adapter will store models in hash keys of the form <dbname>:<key>. It will also use a set at key <dbname>:ids to track model ids.
