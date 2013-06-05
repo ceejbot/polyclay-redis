@@ -1,0 +1,54 @@
+{
+	"name":           "polyclay-redis",
+	"version":        "0.0.1",
+	"description":    "redis persistence adapter for polyclay, the schema-enforcing document mapper",
+	"author":         "C J Silverio <ceejceej@gmail.com>",
+	"license":        "MIT",
+	"readmeFilename": "README.md",
+	"main":           "index.js",
+	"directories":
+	{
+		"test":    "test"
+	},
+	"scripts":
+	{
+		"test":       "mocha -R spec -t 5000 test/test-*.js && mocha -t 5000 --require blanket -R travis-cov test/test-*.js",
+		"test-cov":   "mocha --require blanket -R travis-cov test/test-*.js",
+		"coverage":   "mocha --require blanket -R html-cov test/test-*.js > test/coverage.html",
+		"travis-cov": { "threshold": 90 },
+		"blanket":
+		{
+			"pattern": "//^((?!\/node_modules|test|examples\/).)*$/ig"
+		}
+	},
+	"repository":
+	{
+		"type": "git",
+		"url":  "git://github.com/ceejbot/polyclay-redis.git"
+	},
+	"peerDependencies":
+	{
+		"polyclay": "*"
+	},
+	"dependencies":
+	{
+		"redis":   "*",
+		"lodash":  "*"
+	},
+	"optionalDependencies":
+	{
+		"hiredis":     "*"
+	},
+	"devDependencies":
+	{
+		"mocha":      "*",
+		"chai":       "*",
+		"blanket":    "*",
+		"travis-cov": "*"
+	},
+	"keywords":
+	[
+		"polyclay",
+		"redis"
+	]
+}
