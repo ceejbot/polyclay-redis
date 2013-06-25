@@ -59,8 +59,11 @@ RedisAdapter.prototype.save = function(object, json, callback)
 	chain.hmset(okey, payload.body);
 	if (Object.keys(payload.attachments).length)
 		chain.hmset(this.attachmentKey(object.key), payload.attachments);
+
 	if (_.isNumber(object.ttl) && object.ttl > 0)
 		chain.expire(okey, object.ttl);
+	else if (_.isNumber(object.expire_at) && object.expire_at > 0)
+		chain.expireat(okey, Math.floor(object.expire_at));
 
 	chain.exec(function(err, replies)
 	{

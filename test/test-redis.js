@@ -502,7 +502,7 @@ describe('redis adapter', function()
 		obj.required_prop = 'I am required';
 		obj.is_valid = true;
 
-		obj.ttl = 3;
+		obj.ttl = 2;
 		obj.save(function(err, reply)
 		{
 			should.not.exist(err);
@@ -524,10 +524,46 @@ describe('redis adapter', function()
 						exists.should.equal(0);
 						done();
 					});
-				}, ttl * 1010);
+				}, ttl * 1000 + 100);
 			});
 		});
 	});
+
+	it('setting the expire_at field on an object sets its time to live in redis', function(done)
+	{
+		var obj = new Model();
+		obj.key = 'mayfly2';
+		obj.name = 'George';
+		obj.required_prop = 'I am required';
+		obj.is_valid = true;
+
+		obj.expire_at = Date.now()/1000 + 2;
+		obj.save(function(err, reply)
+		{
+			should.not.exist(err);
+			reply.should.equal('OK');
+			var okey = Model.adapter.hashKey(obj.key);
+
+			Model.adapter.redis.ttl(okey, function(err, response)
+			{
+				should.not.exist(err);
+				var ttl = parseInt(response, 10);
+				ttl.should.be.a('number');
+				ttl.should.be.below(3);
+
+				setTimeout(function()
+				{
+					Model.adapter.redis.exists(okey, function(err, exists)
+					{
+						should.not.exist(err);
+						exists.should.equal(0);
+						done();
+					});
+				}, ttl * 1000 + 500);
+			});
+		});
+	});
+
 
 	after(function(done)
 	{

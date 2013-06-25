@@ -41,3 +41,6 @@ The redis client is available at obj.adapter.redis. The db name falls back to th
 ### Special notes
 
 If the model has a `ttl` field, the adapter *will* use that to set the redis TTL on an object when it is updated or saved. 
+
+Similarly, if an object has an `expire_at`, the adapter will set the redis key to EXPIRE_AT the given timestamp.
+
