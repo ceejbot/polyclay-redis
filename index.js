@@ -15,6 +15,7 @@ RedisAdapter.prototype.configure = function(opts, modelfunc)
 	this.redis = redis.createClient(opts);
 	this.dbname = opts.dbname || modelfunc.prototype.plural;
 	this.constructor = modelfunc;
+	this.ephemeral = opts.ephemeral;
 };
 
 RedisAdapter.prototype.provision = function(callback)
@@ -25,6 +26,9 @@ RedisAdapter.prototype.provision = function(callback)
 
 RedisAdapter.prototype.all = function(callback)
 {
+	if (this.ephemeral)
+		return callback(null, []);
+
 	this.redis.smembers(this.idskey(), function(err, ids)
 	{
 		callback(err, ids);
@@ -55,19 +59,26 @@ RedisAdapter.prototype.save = function(object, json, callback)
 	var okey = this.hashKey(object.key);
 
 	var chain = this.redis.multi();
-	chain.sadd(this.idskey(), object.key);
+
 	chain.hmset(okey, payload.body);
+
+	if (!this.ephemeral)
+		chain.sadd(this.idskey(), object.key);
+
 	if (Object.keys(payload.attachments).length)
 		chain.hmset(this.attachmentKey(object.key), payload.attachments);
 
-	if (_.isNumber(object.ttl) && object.ttl > 0)
-		chain.expire(okey, object.ttl);
-	else if (_.isNumber(object.expire_at) && object.expire_at > 0)
-		chain.expireat(okey, Math.floor(object.expire_at));
+	if (this.ephemeral)
+	{
+		if (_.isNumber(object.ttl) && object.ttl > 0)
+			chain.expire(okey, object.ttl);
+		else if (_.isNumber(object.expire_at) && object.expire_at > 0)
+			chain.expireat(okey, Math.floor(object.expire_at));
+	}
 
 	chain.exec(function(err, replies)
 	{
-		callback(err, replies[1]);
+		callback(err, replies[0]);
 	});
 };
 RedisAdapter.prototype.update = RedisAdapter.prototype.save;
@@ -115,7 +126,10 @@ RedisAdapter.prototype.remove = function(object, callback)
 	var chain = this.redis.multi();
 	chain.del(this.hashKey(object.key));
 	chain.del(this.attachmentKey(object.key));
-	chain.srem(this.idskey(), object.key);
+
+	if (!this.ephemeral)
+		chain.srem(this.idskey(), object.key);
+
 	chain.exec(function(err, replies)
 	{
 		callback(err, replies[0]);
@@ -134,7 +148,10 @@ RedisAdapter.prototype.destroyMany = function(objects, callback)
 
 	var idkey = this.idskey();
 	var chain = this.redis.multi();
-	_.each(ids, function(id) { chain.srem(idkey, id); });
+
+	if (!this.ephemeral)
+		_.each(ids, function(id) { chain.srem(idkey, id); });
+
 	chain.del(_.map(ids, function(key) { return self.hashKey(key); }));
 	chain.del(_.map(ids, function(key) { return self.attachmentKey(key); }));
 

@@ -30,17 +30,31 @@ polyclay.persist(RedisModelFunc, 'name');
 var options =
 {
     host: 'localhost',
-    port: 6379,
-    dbname: 'widgets' // optional
+    port: 6379
 };
 RedisModelFunc.setStorage(options, RedisAdapter);
 ```
 
 The redis client is available at obj.adapter.redis. The db name falls back to the model plural if you don't include it. The dbname is used to namespace model keys.
 
-### Special notes
+### Ephemeral data
 
-If the model has a `ttl` field, the adapter *will* use that to set the redis TTL on an object when it is updated or saved. 
+If you would like your models to persist only for a limited time in redis, set the `ephemeral` field in the options object to true.
 
-Similarly, if an object has an `expire_at`, the adapter will set the redis key to EXPIRE_AT the given timestamp.
+```
+var options =
+{
+    host: 'localhost',
+    port: 6379,
+    ephemeral: true
+};
+RedisModelFunc.setStorage(options, RedisAdapter);
+```
 
+The adapter will *not* track model ids for ephemeral objects, so RedisModelFunc.all() will always respond with an empty list. However, the `save()` function attempts to set a time to live for an object.
+
+If the model has a `ttl` field, the adapter uses that to set the redis TTL on an object when it is updated or saved. 
+
+Similarly, if an object has an `expire_at`, the adapter sets the redis key to EXPIRE_AT the given timestamp.
+
+If you do not set the `ephemeral` option, ttl and expire_at properties will be not be treated specially.

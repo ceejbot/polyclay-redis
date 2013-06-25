@@ -494,22 +494,63 @@ describe('redis adapter', function()
 		assert.equal(result, undefined, 'inflate() created a bad object!');
 	});
 
+	after(function(done)
+	{
+		Model.adapter.redis.del(Model.adapter.idskey(), function(err, deleted)
+		{
+			should.not.exist(err);
+			done();
+		});
+	});
+});
+
+describe('ephemeral models', function()
+{
+	var ephemeralDef =
+	{
+		properties:
+		{
+			key:           'string',
+			name:          'string',
+		},
+		required: [ 'name', ],
+		singular: 'ephemeral',
+		plural: 'ephemera',
+		initialize: function()
+		{
+			this.ran_init = true;
+		}
+	};
+
+	var Ephemeral;
+
+	before(function()
+	{
+		Ephemeral = polyclay.Model.buildClass(ephemeralDef);
+		polyclay.persist(Ephemeral);
+		var options =
+		{
+			host:     'localhost',
+			port:     6379,
+			ephemeral: true
+		};
+		Ephemeral.setStorage(options, RedisAdapter);
+	});
+
 	it('setting the ttl field on an object sets its time to live in redis', function(done)
 	{
-		var obj = new Model();
+		var obj = new Ephemeral();
 		obj.key = 'mayfly';
 		obj.name = 'George';
-		obj.required_prop = 'I am required';
-		obj.is_valid = true;
 
 		obj.ttl = 2;
 		obj.save(function(err, reply)
 		{
 			should.not.exist(err);
 			reply.should.equal('OK');
-			var okey = Model.adapter.hashKey(obj.key);
+			var okey = Ephemeral.adapter.hashKey(obj.key);
 
-			Model.adapter.redis.ttl(okey, function(err, response)
+			Ephemeral.adapter.redis.ttl(okey, function(err, response)
 			{
 				should.not.exist(err);
 				var ttl = parseInt(response, 10);
@@ -518,7 +559,7 @@ describe('redis adapter', function()
 
 				setTimeout(function()
 				{
-					Model.adapter.redis.exists(okey, function(err, exists)
+					Ephemeral.adapter.redis.exists(okey, function(err, exists)
 					{
 						should.not.exist(err);
 						exists.should.equal(0);
@@ -531,20 +572,18 @@ describe('redis adapter', function()
 
 	it('setting the expire_at field on an object sets its time to live in redis', function(done)
 	{
-		var obj = new Model();
+		var obj = new Ephemeral();
 		obj.key = 'mayfly2';
-		obj.name = 'George';
-		obj.required_prop = 'I am required';
-		obj.is_valid = true;
+		obj.name = 'Fred';
 
 		obj.expire_at = Date.now()/1000 + 2;
 		obj.save(function(err, reply)
 		{
 			should.not.exist(err);
 			reply.should.equal('OK');
-			var okey = Model.adapter.hashKey(obj.key);
+			var okey = Ephemeral.adapter.hashKey(obj.key);
 
-			Model.adapter.redis.ttl(okey, function(err, response)
+			Ephemeral.adapter.redis.ttl(okey, function(err, response)
 			{
 				should.not.exist(err);
 				var ttl = parseInt(response, 10);
@@ -553,7 +592,7 @@ describe('redis adapter', function()
 
 				setTimeout(function()
 				{
-					Model.adapter.redis.exists(okey, function(err, exists)
+					Ephemeral.adapter.redis.exists(okey, function(err, exists)
 					{
 						should.not.exist(err);
 						exists.should.equal(0);
@@ -562,12 +601,6 @@ describe('redis adapter', function()
 				}, ttl * 1000 + 500);
 			});
 		});
-	});
-
-
-	after(function(done)
-	{
-		done();
 	});
 
 });
