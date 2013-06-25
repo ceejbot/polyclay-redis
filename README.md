@@ -38,3 +38,6 @@ RedisModelFunc.setStorage(options, RedisAdapter);
 
 The redis client is available at obj.adapter.redis. The db name falls back to the model plural if you don't include it. The dbname is used to namespace model keys.
 
+### Special notes
+
+If the model has a `ttl` field, the adapter *will* use that to set the redis TTL on an object when it is updated or saved. 

@@ -35,6 +35,7 @@ describe('redis adapter', function()
 			is_valid:      'boolean',
 			count:         'number',
 			required_prop: 'string',
+			ttl:           'number'
 		},
 		optional: [ 'computed', 'ephemeral' ],
 		required: [ 'name', 'is_valid', 'required_prop'],
@@ -186,7 +187,7 @@ describe('redis adapter', function()
 		{
 			should.not.exist(err);
 			itemlist.should.be.an('array');
-			itemlist.length.should.equal(2);
+			itemlist.length.should.be.at.least(2);
 			done();
 		});
 	});
@@ -491,6 +492,41 @@ describe('redis adapter', function()
 	{
 		var result = Model.adapter.inflate(null);
 		assert.equal(result, undefined, 'inflate() created a bad object!');
+	});
+
+	it('setting the ttl field on an object sets its time to live in redis', function(done)
+	{
+		var obj = new Model();
+		obj.key = 'mayfly';
+		obj.name = 'George';
+		obj.required_prop = 'I am required';
+		obj.is_valid = true;
+
+		obj.ttl = 3;
+		obj.save(function(err, reply)
+		{
+			should.not.exist(err);
+			reply.should.equal('OK');
+			var okey = Model.adapter.hashKey(obj.key);
+
+			Model.adapter.redis.ttl(okey, function(err, response)
+			{
+				should.not.exist(err);
+				var ttl = parseInt(response, 10);
+				ttl.should.be.a('number');
+				ttl.should.be.below(4);
+
+				setTimeout(function()
+				{
+					Model.adapter.redis.exists(okey, function(err, exists)
+					{
+						should.not.exist(err);
+						exists.should.equal(0);
+						done();
+					});
+				}, ttl * 1010);
+			});
+		});
 	});
 
 	after(function(done)

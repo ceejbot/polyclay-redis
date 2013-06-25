@@ -52,12 +52,15 @@ RedisAdapter.prototype.save = function(object, json, callback)
 		throw(new Error('cannot save a document without a key'));
 
 	var payload = RedisAdapter.flatten(json);
+	var okey = this.hashKey(object.key);
 
 	var chain = this.redis.multi();
 	chain.sadd(this.idskey(), object.key);
-	chain.hmset(this.hashKey(object.key), payload.body);
+	chain.hmset(okey, payload.body);
 	if (Object.keys(payload.attachments).length)
 		chain.hmset(this.attachmentKey(object.key), payload.attachments);
+	if (_.isNumber(object.ttl) && object.ttl > 0)
+		chain.expire(okey, object.ttl);
 
 	chain.exec(function(err, replies)
 	{
