@@ -81,7 +81,38 @@ RedisAdapter.prototype.save = function(object, json, callback)
 		callback(err, replies[0]);
 	});
 };
-RedisAdapter.prototype.update = RedisAdapter.prototype.save;
+
+RedisAdapter.prototype.update = function(object, json, callback)
+{
+	if (!object.key || !object.key.length)
+		throw(new Error('cannot save a document without a key'));
+
+	var self = this;
+	var payload = RedisAdapter.flatten(json);
+	var okey = this.hashKey(object.key);
+
+	this.redis.ttl(okey, function(err, ttl)
+	{
+		if (err) return callback(err);
+
+		var chain = self.redis.multi();
+		chain.hmset(okey, payload.body);
+
+		if (!self.ephemeral)
+			chain.sadd(self.idskey(), object.key);
+
+		if (Object.keys(payload.attachments).length)
+			chain.hmset(self.attachmentKey(object.key), payload.attachments);
+
+		if (ttl > -1)
+			chain.expire(okey, ttl);
+
+		chain.exec(function(err, replies)
+		{
+			callback(err, replies[0]);
+		});
+	});
+};
 
 RedisAdapter.prototype.get = function(key, callback)
 {

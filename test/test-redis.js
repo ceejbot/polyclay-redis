@@ -603,4 +603,38 @@ describe('ephemeral models', function()
 		});
 	});
 
+	it('updating an object with a ttl preserves the ttl', function(done)
+	{
+		var obj = new Ephemeral();
+		obj.key = 'mayfly2';
+		obj.name = 'Fred';
+
+		var start = Date.now();
+		var expires = start + 5000;
+
+		obj.expires_at = expires/1000;
+
+		obj.save(function(err, reply)
+		{
+			should.not.exist(err);
+			reply.should.equal('OK');
+
+			obj.name = 'weasel';
+			obj.save(function(err, reply)
+			{
+				should.not.exist(err);
+				var okey = Ephemeral.adapter.hashKey(obj.key);
+
+				Ephemeral.adapter.redis.ttl(okey, function(err, timeleft)
+				{
+					should.not.exist(err);
+					var newexpiry = Date.now() + timeleft * 1000;
+					newexpiry.should.be.below(expires);
+					done();
+				});
+			});
+		});
+	});
+
+
 });
