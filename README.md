@@ -3,7 +3,9 @@ polyclay-redis
 
 A redis persistence adapter for [Polyclay](https://github.com/ceejbot/polyclay).
 
-[![Build Status](https://secure.travis-ci.org/ceejbot/polyclay-redis.png)](http://travis-ci.org/ceejbot/polyclay-redis)
+[![Build Status](https://secure.travis-ci.org/ceejbot/polyclay-redis.png)](http://travis-ci.org/ceejbot/polyclay-redis) [![Dependencies](https://david-dm.org/ceejbot/polyclay-redis.png)](https://david-dm.org/ceejbot/polyclay-redis) [![NPM version](https://badge.fury.io/js/polyclay-redis.png)](http://badge.fury.io/js/polyclay-redis)
+
+
 
 ## How-to
 
