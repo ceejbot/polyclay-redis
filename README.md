@@ -9,7 +9,7 @@ A redis persistence adapter for [Polyclay](https://github.com/ceejbot/polyclay).
 
 ## How-to
 
-For the redis adapter, specify host & port of your redis server. The `dbname` option is used to namespace keys; it defaults to the plural value of the model class. The redis adapter will store models in hash keys of the form *dbname*:*key*. It will also use a set at key <dbname>:ids to track model ids.
+For the redis adapter, specify host & port of your redis server. The `dbname` option is used to namespace keys; it defaults to the plural value of the model class. The redis adapter will store models in hash keys of the form *dbname:key*. It will also use a set at key *dbname*:ids to track model ids.
 
 ```javascript
 var polyclay = require('polyclay'),
