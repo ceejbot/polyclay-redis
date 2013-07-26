@@ -630,6 +630,7 @@ describe('ephemeral models', function()
 			Ephemeral.get(obj.key, function(err, obj)
 			{
 				should.not.exist(err);
+				obj.expire_at.should.be.below(expires / 1000 + 1);
 
 				obj.name = 'weasel';
 				obj.save(function(err, reply)
@@ -640,8 +641,7 @@ describe('ephemeral models', function()
 					Ephemeral.adapter.redis.ttl(okey, function(err, timeleft)
 					{
 						should.not.exist(err);
-						var newexpiry = Date.now() + timeleft * 1000;
-						newexpiry.should.be.below(expires);
+						(+timeleft).should.be.below(obj.ttl + 1);
 						done();
 					});
 				});
