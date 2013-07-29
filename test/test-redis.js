@@ -576,22 +576,30 @@ describe('ephemeral models', function()
 		obj.key = 'mayfly2';
 		obj.name = 'Fred';
 
-		obj.expire_at = Date.now()/1000 + 2;
+		var expireAt = Date.now()/1000 + 2;
+		obj.expire_at = expireAt;
 		obj.save(function(err, reply)
 		{
 			should.not.exist(err);
 			reply.should.equal('OK');
-			var okey = Ephemeral.adapter.hashKey(obj.key);
 
-			Ephemeral.adapter.redis.ttl(okey, function(err, response)
+			Ephemeral.get(obj.key, function(err, model)
 			{
 				should.not.exist(err);
-				var ttl = parseInt(response, 10);
+
+				should.exist(model.ttl);
+				should.exist(model.expire_at);
+
+				var ttl = model.ttl;
 				ttl.should.be.a('number');
 				ttl.should.be.below(3);
 
+				model.expire_at.should.be.a('number');
+				model.expire_at.should.be.at.most(expireAt);
+
 				setTimeout(function()
 				{
+					var okey = Ephemeral.adapter.hashKey(model.key);
 					Ephemeral.adapter.redis.exists(okey, function(err, exists)
 					{
 						should.not.exist(err);
@@ -612,29 +620,33 @@ describe('ephemeral models', function()
 		var start = Date.now();
 		var expires = start + 5000;
 
-		obj.expires_at = expires/1000;
+		obj.expire_at = expires/1000;
 
 		obj.save(function(err, reply)
 		{
 			should.not.exist(err);
 			reply.should.equal('OK');
 
-			obj.name = 'weasel';
-			obj.save(function(err, reply)
+			Ephemeral.get(obj.key, function(err, obj)
 			{
 				should.not.exist(err);
-				var okey = Ephemeral.adapter.hashKey(obj.key);
+				obj.expire_at.should.be.below(expires / 1000 + 1);
 
-				Ephemeral.adapter.redis.ttl(okey, function(err, timeleft)
+				obj.name = 'weasel';
+				obj.save(function(err, reply)
 				{
 					should.not.exist(err);
-					var newexpiry = Date.now() + timeleft * 1000;
-					newexpiry.should.be.below(expires);
-					done();
+					var okey = Ephemeral.adapter.hashKey(obj.key);
+
+					Ephemeral.adapter.redis.ttl(okey, function(err, timeleft)
+					{
+						should.not.exist(err);
+						(+timeleft).should.be.below(obj.ttl + 1);
+						done();
+					});
 				});
 			});
 		});
 	});
-
 
 });

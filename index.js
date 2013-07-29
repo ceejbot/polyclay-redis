@@ -82,37 +82,7 @@ RedisAdapter.prototype.save = function(object, json, callback)
 	});
 };
 
-RedisAdapter.prototype.update = function(object, json, callback)
-{
-	if (!object.key || !object.key.length)
-		throw(new Error('cannot save a document without a key'));
-
-	var self = this;
-	var payload = RedisAdapter.flatten(json);
-	var okey = this.hashKey(object.key);
-
-	this.redis.ttl(okey, function(err, ttl)
-	{
-		if (err) return callback(err);
-
-		var chain = self.redis.multi();
-		chain.hmset(okey, payload.body);
-
-		if (!self.ephemeral)
-			chain.sadd(self.idskey(), object.key);
-
-		if (Object.keys(payload.attachments).length)
-			chain.hmset(self.attachmentKey(object.key), payload.attachments);
-
-		if (ttl > -1)
-			chain.expire(okey, ttl);
-
-		chain.exec(function(err, replies)
-		{
-			callback(err, replies[0]);
-		});
-	});
-};
+RedisAdapter.prototype.update = RedisAdapter.prototype.save;
 
 RedisAdapter.prototype.get = function(key, callback)
 {
@@ -120,10 +90,28 @@ RedisAdapter.prototype.get = function(key, callback)
 	if (Array.isArray(key))
 		return this.getBatch(key, callback);
 
-	this.redis.hgetall(this.hashKey(key), function(err, payload)
+	var chain = this.redis.multi();
+	var hkey = this.hashKey(key);
+
+	chain.hgetall(hkey);
+	chain.ttl(hkey);
+
+	chain.exec(function(err, jsondocs)
 	{
 		if (err) return callback(err);
-		var object = self.inflate(payload);
+
+		var item = jsondocs[0];
+		if (!item) return callback(null, null);
+
+		var object = self.inflate(item);
+
+		if (self.ephemeral)
+		{
+			var ttl = jsondocs[1];
+			object.ttl = ttl;
+			object.expire_at = Math.floor(Date.now() / 1000 + ttl);
+		}
+
 		callback(null, object);
 	});
 };
@@ -134,13 +122,33 @@ RedisAdapter.prototype.getBatch = function(keylist, callback)
 	var chain = this.redis.multi();
 	_.each(keylist, function(item)
 	{
-		chain.hgetall(self.hashKey(item));
+		var hkey = self.hashKey(item);
+		chain.hgetall(hkey);
+		chain.ttl(hkey);
 	});
 
 	chain.exec(function(err, jsondocs)
 	{
 		if (err) return callback(err);
-		var results = _.map(jsondocs, function(item) { return self.inflate(item); });
+		var results = [];
+
+		for (var i = 0, len = jsondocs.length; i < len--; i += 2)
+		{
+			var item = jsondocs[i];
+			if (!item) continue;
+
+			var object = self.inflate(item);
+
+			if (self.ephemeral)
+			{
+				var ttl = jsondocs[i + 1];
+				object.ttl = ttl;
+				object.expire_at = Math.floor(Date.now() / 1000 + ttl);
+			}
+
+			results.push(object);
+		}
+
 		callback(err, results);
 	});
 
