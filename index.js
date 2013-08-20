@@ -12,7 +12,7 @@ function RedisAdapter() { }
 
 RedisAdapter.prototype.configure = function(opts, modelfunc)
 {
-	this.redis = redis.createClient(opts);
+	this.redis = redis.createClient(opts.port, opts.host);
 	this.dbname = opts.dbname || modelfunc.prototype.plural;
 	this.constructor = modelfunc;
 	this.ephemeral = opts.ephemeral;
