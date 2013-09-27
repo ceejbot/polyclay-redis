@@ -8,11 +8,13 @@ var
 	;
 
 var
+	events       = require('events'),
 	fs           = require('fs'),
 	path         = require('path'),
 	polyclay     = require('polyclay'),
 	redis        = require('redis'),
 	RedisAdapter = require('../index'),
+	sinon        = require('sinon'),
 	util         = require('util')
 	;
 
@@ -494,6 +496,52 @@ describe('redis adapter', function()
 		assert.equal(result, undefined, 'inflate() created a bad object!');
 	});
 
+	it('listens for redis connection errors', function(done)
+	{
+		Model.adapter.on('log', function(msg)
+		{
+			if (msg.match(/ready/))
+			{
+				Model.adapter.removeAllListeners('log');
+				done();
+			}
+		});
+
+		Model.adapter.redis.emit('error', new Error('wat'));
+	});
+
+	it('attempts to reconnect until redis is available again', function(done)
+	{
+		var count = 0;
+		function notARedis(port, host)
+		{
+			if (++count > 3)
+			{
+				stub.restore();
+				return redis.createClient(port, host);
+			}
+
+			var obj = new events.EventEmitter();
+			setTimeout(function() { obj.emit('error', new Error('ECONNREFUSED fake')); }, 200);
+			return obj;
+		}
+
+		var stub = sinon.stub(redis, 'createClient', notARedis);
+
+		function handleLog(msg)
+		{
+			if (msg.match(/ready/))
+			{
+				stub.restore();
+				Model.adapter.removeAllListeners('log');
+				done();
+			}
+		}
+
+		Model.adapter.on('log', handleLog);
+		Model.adapter.redis.emit('error', new Error('wat'));
+	});
+
 	after(function(done)
 	{
 		Model.adapter.redis.del(Model.adapter.idskey(), function(err, deleted)
@@ -648,5 +696,4 @@ describe('ephemeral models', function()
 			});
 		});
 	});
-
 });

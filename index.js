@@ -1,21 +1,61 @@
-// Redis storage interface.
-// Objects are stored as hashes.
-
 var
-	_ = require('lodash'),
-	redis = require('redis')
+	_      = require('lodash'),
+	events = require('events'),
+	redis  = require('redis'),
+	util   = require('util')
 	;
 
-//-----------------------------------------------------------------
+function RedisAdapter()
+{
+	events.EventEmitter.call(this);
+}
+util.inherits(RedisAdapter, events.EventEmitter);
 
-function RedisAdapter() { }
+RedisAdapter.prototype.redis       = null;
+RedisAdapter.prototype.dbname      = null;
+RedisAdapter.prototype.constructor = null;
+RedisAdapter.prototype.ephemeral   = false;
+RedisAdapter.prototype.options     = null;
+RedisAdapter.prototype.attempts    = 0;
 
 RedisAdapter.prototype.configure = function(opts, modelfunc)
 {
-	this.redis = redis.createClient(opts.port, opts.host);
+	this.options = opts;
 	this.dbname = opts.dbname || modelfunc.prototype.plural;
 	this.constructor = modelfunc;
 	this.ephemeral = opts.ephemeral;
+
+	this.connect();
+};
+
+RedisAdapter.prototype.connect = function()
+{
+	this.connectTimeout = null;
+	this.redis = redis.createClient(this.options.port, this.options.host);
+
+	this.redis.on('error', this.handleError.bind(this));
+	this.redis.once('ready', this.handleReady.bind(this));
+};
+
+RedisAdapter.prototype.handleReady = function()
+{
+	this.emit('log', 'redis @ ' + this.options.host + ':' + this.options.port + ' ready');
+	this.attempts = 0;
+};
+
+function exponentialBackoff(attempt)
+{
+	return Math.min(Math.floor(Math.random() * Math.pow(2, attempt) + 10), 10000);
+}
+
+RedisAdapter.prototype.handleError = function(err)
+{
+	if (this.connectTimeout)
+		return;
+	this.emit('log', 'error caught: ' + err);
+	this.attempts++;
+	this.redis.removeAllListeners('error');
+	this.connectTimeout = setTimeout(this.connect.bind(this), exponentialBackoff(this.attempts));
 };
 
 RedisAdapter.prototype.provision = function(callback)

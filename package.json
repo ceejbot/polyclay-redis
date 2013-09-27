@@ -1,6 +1,6 @@
 {
 	"name":           "polyclay-redis",
-	"version":        "0.0.5",
+	"version":        "0.0.6",
 	"description":    "redis persistence adapter for polyclay, the schema-enforcing document mapper",
 	"author":         "C J Silverio <ceejceej@gmail.com>",
 	"contributors":
@@ -49,6 +49,7 @@
 		"mocha":      "*",
 		"chai":       "*",
 		"blanket":    "*",
+		"sinon":      "*",
 		"travis-cov": "*"
 	},
 	"keywords":
