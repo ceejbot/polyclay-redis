@@ -1,13 +1,7 @@
 /*global describe:true, it:true, before:true, after:true */
 
 var
-	chai   = require('chai'),
-	assert = chai.assert,
-	expect = chai.expect,
-	should = chai.should()
-	;
-
-var
+	demand       = require('must'),
 	events       = require('events'),
 	fs           = require('fs'),
 	path         = require('path'),
@@ -66,17 +60,17 @@ describe('redis adapter', function()
 		};
 
 		Model.setStorage(options, RedisAdapter);
-		Model.adapter.should.be.ok;
-		Model.adapter.redis.should.be.ok;
-		Model.adapter.constructor.should.equal(Model);
-		Model.adapter.dbname.should.equal(Model.prototype.plural);
+		Model.adapter.must.exist();
+		Model.adapter.redis.must.exist();
+		Model.adapter.constructor.must.equal(Model);
+		Model.adapter.dbname.must.equal(Model.prototype.plural);
 	});
 
 	it('provision does nothing', function(done)
 	{
 		Model.provision(function(err)
 		{
-			should.not.exist(err);
+			demand(err).not.exist();
 			done();
 		});
 	});
@@ -92,7 +86,7 @@ describe('redis adapter', function()
 			});
 		};
 
-		noID.should.throw(Error);
+		noID.must.throw(Error);
 	});
 
 	it('can save a document in the db', function(done)
@@ -113,8 +107,8 @@ describe('redis adapter', function()
 
 		instance.save(function(err, reply)
 		{
-			should.not.exist(err);
-			reply.should.be.ok;
+			demand(err).not.exist();
+			reply.must.exist();
 			done();
 		});
 	});
@@ -123,15 +117,15 @@ describe('redis adapter', function()
 	{
 		Model.get(instance.key, function(err, retrieved)
 		{
-			should.not.exist(err);
-			retrieved.should.be.ok;
-			retrieved.should.be.an('object');
-			retrieved.key.should.equal(instance.key);
-			retrieved.name.should.equal(instance.name);
-			retrieved.created.getTime().should.equal(instance.created.getTime());
-			retrieved.is_valid.should.equal(instance.is_valid);
-			retrieved.count.should.equal(instance.count);
-			retrieved.computed.should.equal(instance.computed);
+			demand(err).not.exist();
+			retrieved.must.exist();
+			retrieved.must.be.an.object();
+			retrieved.key.must.equal(instance.key);
+			retrieved.name.must.equal(instance.name);
+			retrieved.created.getTime().must.equal(instance.created.getTime());
+			retrieved.is_valid.must.equal(instance.is_valid);
+			retrieved.count.must.equal(instance.count);
+			retrieved.computed.must.equal(instance.computed);
 			done();
 		});
 	});
@@ -139,13 +133,13 @@ describe('redis adapter', function()
 	it('can update the document', function(done)
 	{
 		instance.name = "New name";
-		instance.isDirty().should.be.true;
+		instance.isDirty().must.be.true();
 		instance.save(function(err, response)
 		{
-			should.not.exist(err);
-			response.should.be.a('string');
-			response.should.equal('OK');
-			instance.isDirty().should.equal(false);
+			demand(err).not.exist();
+			response.must.be.a.string();
+			response.must.equal('OK');
+			instance.isDirty().must.equal(false);
 			done();
 		});
 	});
@@ -163,9 +157,9 @@ describe('redis adapter', function()
 
 			Model.get(ids, function(err, itemlist)
 			{
-				should.not.exist(err);
-				itemlist.should.be.an('array');
-				itemlist.length.should.equal(2);
+				demand(err).not.exist();
+				itemlist.must.be.an.array();
+				itemlist.length.must.equal(2);
 				done();
 			});
 		});
@@ -176,9 +170,9 @@ describe('redis adapter', function()
 		var ids = [ '1', '2' ];
 		Model.adapter.get(ids, function(err, itemlist)
 		{
-			should.not.exist(err);
-			itemlist.should.be.an('array');
-			itemlist.length.should.equal(2);
+			demand(err).not.exist();
+			itemlist.must.be.an.array();
+			itemlist.length.must.equal(2);
 			done();
 		});
 	});
@@ -187,9 +181,9 @@ describe('redis adapter', function()
 	{
 		Model.all(function(err, itemlist)
 		{
-			should.not.exist(err);
-			itemlist.should.be.an('array');
-			itemlist.length.should.be.at.least(2);
+			demand(err).not.exist();
+			itemlist.must.be.an.array();
+			itemlist.length.must.be.at(2);
 			done();
 		});
 	});
@@ -198,9 +192,9 @@ describe('redis adapter', function()
 	{
 		Model.constructMany([], function(err, results)
 		{
-			should.not.exist(err);
-			results.should.be.an('array');
-			results.length.should.equal(0);
+			demand(err).not.exist();
+			results.must.be.an.array();
+			results.length.must.equal(0);
 			done();
 		});
 	});
@@ -209,17 +203,17 @@ describe('redis adapter', function()
 	{
 		Model.get('2', function(err, item)
 		{
-			should.not.exist(err);
+			demand(err).not.exist();
 
 			item.merge({ is_valid: true, count: 1023 }, function(err, response)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 				Model.get(item.key, function(err, stored)
 				{
-					should.not.exist(err);
-					stored.count.should.equal(1023);
-					stored.is_valid.should.equal(true);
-					stored.name.should.equal(item.name);
+					demand(err).not.exist();
+					stored.count.must.equal(1023);
+					stored.is_valid.must.equal(true);
+					stored.name.must.equal(item.name);
 					done();
 				});
 			});
@@ -231,22 +225,22 @@ describe('redis adapter', function()
 		Model.defineAttachment('frogs', 'text/plain');
 		Model.defineAttachment('avatar', 'image/png');
 
-		instance.set_frogs.should.be.a('function');
-		instance.fetch_frogs.should.be.a('function');
+		instance.set_frogs.must.be.a.function();
+		instance.fetch_frogs.must.be.a.function();
 		var property = Object.getOwnPropertyDescriptor(Model.prototype, 'frogs');
-		property.get.should.be.a('function');
-		property.set.should.be.a('function');
+		property.get.must.be.a.function();
+		property.set.must.be.a.function();
 	});
 
 	it('can save attachments', function(done)
 	{
 		instance.avatar = attachmentdata;
 		instance.frogs = 'This is bunch of frogs.';
-		instance.isDirty().should.equal.true;
+		instance.isDirty().must.equal.true;
 		instance.save(function(err, response)
 		{
-			should.not.exist(err);
-			instance.isDirty().should.equal.false;
+			demand(err).not.exist();
+			instance.isDirty().must.equal.false;
 			done();
 		});
 	});
@@ -257,14 +251,14 @@ describe('redis adapter', function()
 		{
 			retrieved.fetch_frogs(function(err, frogs)
 			{
-				should.not.exist(err);
-				frogs.should.be.a('string');
-				frogs.should.equal('This is bunch of frogs.');
+				demand(err).not.exist();
+				frogs.must.be.a.string();
+				frogs.must.equal('This is bunch of frogs.');
 				retrieved.fetch_avatar(function(err, imagedata)
 				{
-					should.not.exist(err);
-					assert(imagedata instanceof Buffer, 'expected image attachment to be a Buffer');
-					imagedata.length.should.equal(attachmentdata.length);
+					demand(err).not.exist();
+					imagedata.must.be.instanceof(Buffer);
+					imagedata.length.must.equal(attachmentdata.length);
 					done();
 				});
 			});
@@ -276,18 +270,18 @@ describe('redis adapter', function()
 		instance.frogs = 'Poison frogs are awesome.';
 		instance.save(function(err, response)
 		{
-			should.not.exist(err);
+			demand(err).not.exist();
 			Model.get(instance.key, function(err, retrieved)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 				retrieved.fetch_frogs(function(err, frogs)
 				{
-					should.not.exist(err);
-					frogs.should.equal(instance.frogs);
+					demand(err).not.exist();
+					frogs.must.equal(instance.frogs);
 					retrieved.fetch_avatar(function(err, imagedata)
 					{
-						should.not.exist(err);
-						imagedata.length.should.equal(attachmentdata.length);
+						demand(err).not.exist();
+						imagedata.length.must.equal(attachmentdata.length);
 						done();
 					});
 				});
@@ -300,14 +294,14 @@ describe('redis adapter', function()
 		instance.frogs = 'Poison frogs are awesome, but I think sand frogs are adorable.';
 		instance.saveAttachment('frogs', function(err, response)
 		{
-			should.not.exist(err);
+			demand(err).not.exist();
 			Model.get(instance.key, function(err, retrieved)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 				retrieved.fetch_frogs(function(err, frogs)
 				{
-					should.not.exist(err);
-					frogs.should.equal(instance.frogs);
+					demand(err).not.exist();
+					frogs.must.equal(instance.frogs);
 					done();
 				});
 			});
@@ -317,11 +311,11 @@ describe('redis adapter', function()
 	it('saveAttachment() clears the dirty bit', function(done)
 	{
 		instance.frogs = 'This is bunch of frogs.';
-		instance.isDirty().should.equal(true);
+		instance.isDirty().must.equal(true);
 		instance.saveAttachment('frogs', function(err, response)
 		{
-			should.not.exist(err);
-			instance.isDirty().should.equal(false);
+			demand(err).not.exist();
+			instance.isDirty().must.equal(false);
 			done();
 		});
 	});
@@ -330,8 +324,8 @@ describe('redis adapter', function()
 	{
 		instance.removeAttachment('frogs', function(err, deleted)
 		{
-			should.not.exist(err);
-			deleted.should.be.true;
+			demand(err).not.exist();
+			deleted.must.be.true();
 			done();
 		});
 	});
@@ -342,15 +336,15 @@ describe('redis adapter', function()
 		instance.avatar = attachmentdata;
 		instance.save(function(err, response)
 		{
-			should.not.exist(err);
-			instance.isDirty().should.be.false;
+			demand(err).not.exist();
+			instance.isDirty().must.be.false();
 			instance.fetch_avatar(function(err, imagedata)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 				var cached = instance.__attachments['avatar'].body;
-				cached.should.be.okay;
-				(cached instanceof Buffer).should.equal(true);
-				polyclay.dataLength(cached).should.equal(polyclay.dataLength(attachmentdata));
+				cached.must.exist();
+				(cached instanceof Buffer).must.equal(true);
+				polyclay.dataLength(cached).must.equal(polyclay.dataLength(attachmentdata));
 				done();
 			});
 		});
@@ -360,9 +354,9 @@ describe('redis adapter', function()
 	{
 		Model.adapter.attachment('1', 'avatar', function(err, body)
 		{
-			should.not.exist(err);
-			(body instanceof Buffer).should.equal(true);
-			polyclay.dataLength(body).should.equal(polyclay.dataLength(attachmentdata));
+			demand(err).not.exist();
+			(body instanceof Buffer).must.equal(true);
+			polyclay.dataLength(body).must.equal(polyclay.dataLength(attachmentdata));
 			done();
 		});
 	});
@@ -372,14 +366,14 @@ describe('redis adapter', function()
 		instance.avatar = null;
 		instance.save(function(err, response)
 		{
-			should.not.exist(err);
+			demand(err).not.exist();
 			Model.get(instance.key, function(err, retrieved)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 				retrieved.fetch_avatar(function(err, imagedata)
 				{
-					should.not.exist(err);
-					should.not.exist(imagedata);
+					demand(err).not.exist();
+					demand(imagedata).not.exist();
 					done();
 				});
 			});
@@ -390,9 +384,9 @@ describe('redis adapter', function()
 	{
 		instance.destroy(function(err, deleted)
 		{
-			should.not.exist(err);
-			deleted.should.be.ok;
-			instance.destroyed.should.be.true;
+			demand(err).not.exist();
+			deleted.must.exist();
+			instance.destroyed.must.be.true();
 			done();
 		});
 	});
@@ -406,13 +400,13 @@ describe('redis adapter', function()
 		{
 			Model.get('2', function(err, obj)
 			{
-				should.not.exist(err);
-				obj.should.be.an('object');
+				demand(err).not.exist();
+				obj.must.be.an.object();
 
 				var itemlist = [obj, obj2.key];
 				Model.destroyMany(itemlist, function(err, response)
 				{
-					should.not.exist(err);
+					demand(err).not.exist();
 					// TODO examine response more carefully
 					done();
 				});
@@ -424,7 +418,7 @@ describe('redis adapter', function()
 	{
 		Model.destroyMany(null, function(err)
 		{
-			should.not.exist(err);
+			demand(err).not.exist();
 			done();
 		});
 	});
@@ -434,8 +428,8 @@ describe('redis adapter', function()
 		var obj = new Model();
 		obj.destroy(function(err, destroyed)
 		{
-			err.should.be.an('object');
-			err.message.should.equal('cannot destroy object without an id');
+			err.must.be.an.object();
+			err.message.must.equal('cannot destroy object without an id');
 			done();
 		});
 	});
@@ -447,8 +441,8 @@ describe('redis adapter', function()
 		obj.destroyed = true;
 		obj.destroy(function(err, destroyed)
 		{
-			err.should.be.an('object');
-			err.message.should.equal('object already destroyed');
+			err.must.be.an.object();
+			err.message.must.equal('object already destroyed');
 			done();
 		});
 	});
@@ -462,18 +456,18 @@ describe('redis adapter', function()
 
 		obj.save(function(err, reply)
 		{
-			should.not.exist(err);
-			reply.should.equal('OK');
+			demand(err).not.exist();
+			reply.must.equal('OK');
 
 			obj.destroy(function(err, destroyed)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 				var k = Model.adapter.attachmentKey('cats');
 				Model.adapter.redis.hkeys(k, function(err, reply)
 				{
-					should.not.exist(err);
-					reply.should.be.an('array');
-					reply.length.should.equal(0);
+					demand(err).not.exist();
+					reply.must.be.an.array();
+					reply.length.must.equal(0);
 					done();
 				});
 			});
@@ -487,13 +481,13 @@ describe('redis adapter', function()
 			name: 'this is not valid json'
 		};
 		var result = Model.adapter.inflate(bad);
-		result.name.should.equal(bad.name);
+		result.name.must.equal(bad.name);
 	});
 
 	it('inflate() does not construct an object when given a null payload', function()
 	{
 		var result = Model.adapter.inflate(null);
-		assert.equal(result, undefined, 'inflate() created a bad object!');
+		demand(result).be.undefined();
 	});
 
 	it('listens for redis connection errors', function(done)
@@ -546,7 +540,7 @@ describe('redis adapter', function()
 	{
 		Model.adapter.redis.del(Model.adapter.idskey(), function(err, deleted)
 		{
-			should.not.exist(err);
+			demand(err).not.exist();
 			done();
 		});
 	});
@@ -594,23 +588,23 @@ describe('ephemeral models', function()
 		obj.ttl = 2;
 		obj.save(function(err, reply)
 		{
-			should.not.exist(err);
-			reply.should.equal('OK');
+			demand(err).not.exist();
+			reply.must.equal('OK');
 			var okey = Ephemeral.adapter.hashKey(obj.key);
 
 			Ephemeral.adapter.redis.ttl(okey, function(err, response)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 				var ttl = parseInt(response, 10);
-				ttl.should.be.a('number');
-				ttl.should.be.below(4);
+				ttl.must.be.a.number();
+				ttl.must.be.below(4);
 
 				setTimeout(function()
 				{
 					Ephemeral.adapter.redis.exists(okey, function(err, exists)
 					{
-						should.not.exist(err);
-						exists.should.equal(0);
+						demand(err).not.exist();
+						exists.must.equal(0);
 						done();
 					});
 				}, ttl * 1000 + 100);
@@ -628,30 +622,30 @@ describe('ephemeral models', function()
 		obj.expire_at = expireAt;
 		obj.save(function(err, reply)
 		{
-			should.not.exist(err);
-			reply.should.equal('OK');
+			demand(err).not.exist();
+			reply.must.equal('OK');
 
 			Ephemeral.get(obj.key, function(err, model)
 			{
-				should.not.exist(err);
+				demand(err).not.exist();
 
-				should.exist(model.ttl);
-				should.exist(model.expire_at);
+				model.must.have.property('ttl');
+				model.must.have.property('expire_at');
 
 				var ttl = model.ttl;
-				ttl.should.be.a('number');
-				ttl.should.be.below(3);
+				ttl.must.be.a.number();
+				ttl.must.be.below(3);
 
-				model.expire_at.should.be.a('number');
-				model.expire_at.should.be.at.most(expireAt);
+				model.expire_at.must.be.a.number();
+				model.expire_at.must.be.at.most(expireAt);
 
 				setTimeout(function()
 				{
 					var okey = Ephemeral.adapter.hashKey(model.key);
 					Ephemeral.adapter.redis.exists(okey, function(err, exists)
 					{
-						should.not.exist(err);
-						exists.should.equal(0);
+						demand(err).not.exist();
+						exists.must.equal(0);
 						done();
 					});
 				}, ttl * 1000 + 500);
@@ -672,24 +666,24 @@ describe('ephemeral models', function()
 
 		obj.save(function(err, reply)
 		{
-			should.not.exist(err);
-			reply.should.equal('OK');
+			demand(err).not.exist();
+			reply.must.equal('OK');
 
 			Ephemeral.get(obj.key, function(err, obj)
 			{
-				should.not.exist(err);
-				obj.expire_at.should.be.below(expires / 1000 + 1);
+				demand(err).not.exist();
+				obj.expire_at.must.be.below(expires / 1000 + 1);
 
 				obj.name = 'weasel';
 				obj.save(function(err, reply)
 				{
-					should.not.exist(err);
+					demand(err).not.exist();
 					var okey = Ephemeral.adapter.hashKey(obj.key);
 
 					Ephemeral.adapter.redis.ttl(okey, function(err, timeleft)
 					{
-						should.not.exist(err);
-						(+timeleft).should.be.below(obj.ttl + 1);
+						demand(err).not.exist();
+						(+timeleft).must.be.below(obj.ttl + 1);
 						done();
 					});
 				});
