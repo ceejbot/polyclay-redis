@@ -1,11 +1,9 @@
 polyclay-redis
 ==============
 
-A redis persistence adapter for [Polyclay](https://github.com/ceejbot/polyclay).
+A redis persistence adapter for [Polyclay](https://github.com/ceejbot/polyclay-redis).
 
-[![Build Status](https://secure.travis-ci.org/ceejbot/polyclay-redis.png)](http://travis-ci.org/ceejbot/polyclay-redis) [![Dependencies](https://david-dm.org/ceejbot/polyclay-redis.png)](https://david-dm.org/ceejbot/polyclay-redis) [![NPM version](https://badge.fury.io/js/polyclay-redis.png)](http://badge.fury.io/js/polyclay-redis)
-
-
+[![on npm](http://img.shields.io/npm/v/polyclay-redis.svg?style=flat)](https://www.npmjs.org/package/polyclay-redis)  [![Tests](http://img.shields.io/travis/ceejbot/polyclay-redis.svg?style=flat)](http://travis-ci.org/ceejbot/polyclay-redis) ![Coverage](http://img.shields.io/badge/coverage-97%25-green.svg?style=flat) [![Dependencies](http://img.shields.io/david/ceejbot/polyclay.svg?style=flat)](https://david-dm.org/ceejbot/polyclay-redis)
 
 ## How-to
 
@@ -43,7 +41,7 @@ The redis client is available at obj.adapter.redis. The db name falls back to th
 
 If you would like your models to persist only for a limited time in redis, set the `ephemeral` field in the options object to true.
 
-```
+```javascript
 var options =
 {
     host: 'localhost',
@@ -55,7 +53,7 @@ RedisModelFunc.setStorage(options, RedisAdapter);
 
 The adapter will *not* track model ids for ephemeral objects, so RedisModelFunc.all() will always respond with an empty list. However, the `save()` function attempts to set a time to live for an object.
 
-If the model has a `ttl` field, the adapter uses that to set the redis TTL on an object when it is updated or saved. 
+If the model has a `ttl` field, the adapter uses that to set the redis TTL on an object when it is updated or saved.
 
 Similarly, if an object has an `expire_at`, the adapter sets the redis key to EXPIRE_AT the given timestamp.
 

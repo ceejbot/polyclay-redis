@@ -5,7 +5,12 @@
   "author": "C J Silverio <ceejceej@gmail.com>",
   "config": {
     "blanket": {
-      "pattern": "//^((?!/node_modules|test|examples/).)*$/ig"
+      "pattern": "index.js",
+      "data-cover-never": [
+        "node_modules",
+        "test"
+      ],
+      "output-reporter": "spec"
     },
     "travis-cov": {
       "threshold": 90
@@ -24,11 +29,9 @@
     "blanket": "~1.1.6",
     "mocha": "~2.1.0",
     "must": "~0.12.0",
+    "polyclay": "~1.7.1",
     "sinon": "~1.12.2",
     "travis-cov": "*"
-  },
-  "directories": {
-    "test": "test"
   },
   "keywords": [
     "polyclay",
@@ -37,10 +40,7 @@
   "license": "MIT",
   "main": "index.js",
   "optionalDependencies": {
-    "hiredis": "*"
-  },
-  "peerDependencies": {
-    "polyclay": "*"
+    "hiredis": "~0.2.0"
   },
   "readmeFilename": "README.md",
   "repository": {
@@ -48,8 +48,8 @@
     "url": "git://github.com/ceejbot/polyclay-redis.git"
   },
   "scripts": {
-    "coverage": "mocha -t 5000 --require blanket -R html-cov test/test-*.js > test/coverage.html",
-    "test": "mocha -R spec -t 5000 test/test-*.js && mocha -t 5000 --require blanket -R travis-cov test/test-*.js",
-    "test-cov": "mocha -t 5000 --require blanket -R travis-cov test/test-*.js"
+    "test": "mocha -t 5000 --check-leaks --ui exports --require blanket -R mocoverage",
+    "test-cov": "mocha -t 5000 --require blanket -R travis-cov test/test-*.js",
+    "travis": "npm test && npm run test-cov"
   }
 }
