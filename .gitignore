@@ -2,3 +2,5 @@
 .DS_Store
 coverage.html
 test/TestDB/**
+.nyc_output
+npm-debug.log

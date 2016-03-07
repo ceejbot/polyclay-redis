@@ -3,36 +3,21 @@
   "description": "redis persistence adapter for polyclay, the schema-enforcing document mapper",
   "version": "0.1.0",
   "author": "C J Silverio <ceejceej@gmail.com>",
-  "config": {
-    "blanket": {
-      "pattern": "index.js",
-      "data-cover-never": [
-        "node_modules",
-        "test"
-      ],
-      "output-reporter": "spec"
-    },
-    "travis-cov": {
-      "threshold": 90
-    }
-  },
   "contributors": [
     "C J Silverio <ceejceej@gmail.com>",
     "Kit Cambridge <kitcambridge@me.com>"
   ],
   "dependencies": {
-    "hiredis": "~0.2.0",
-    "lodash": "~3.2.0",
-    "redis": "~0.12.1"
+    "lodash": "~4.6.1",
+    "redis": "~2.5.0-1"
   },
   "devDependencies": {
-    "blanket": "~1.1.6",
-    "mocha": "~2.1.0",
-    "mocoverage": "~1.0.0",
-    "must": "~0.12.0",
-    "polyclay": "~1.7.1",
-    "sinon": "~1.12.2",
-    "travis-cov": "*"
+    "coveralls": "~2.11.8",
+    "mocha": "~2.4.5",
+    "must": "~0.13.1",
+    "nyc": "~6.0.0",
+    "polyclay": "~1.8.0",
+    "sinon": "~1.17.3"
   },
   "keywords": [
     "polyclay",
@@ -40,17 +25,14 @@
   ],
   "license": "MIT",
   "main": "index.js",
-  "optionalDependencies": {
-    "hiredis": "~0.2.0"
-  },
   "readmeFilename": "README.md",
   "repository": {
     "type": "git",
     "url": "git://github.com/ceejbot/polyclay-redis.git"
   },
   "scripts": {
-    "test": "mocha -t 5000 --check-leaks --ui exports --require blanket -R mocoverage",
-    "test-cov": "mocha -t 5000 --require blanket -R travis-cov test/test-*.js",
+    "test": "nyc mocha -t 5000 --check-leaks -R spec",
+    "test-cov": "nyc report --reporter=text-lcov | coveralls",
     "travis": "npm test && npm run test-cov"
   }
 }

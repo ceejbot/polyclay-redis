@@ -19,8 +19,7 @@ var attachmentdata = fs.readFileSync(path.join(testDir, 'test.png'));
 
 describe('redis adapter', function()
 {
-	var modelDefinition =
-	{
+	var modelDefinition = {
 		properties:
 		{
 			key:           'string',
@@ -92,8 +91,7 @@ describe('redis adapter', function()
 	it('can save a document in the db', function(done)
 	{
 		instance = new Model();
-		instance.update(
-		{
+		instance.update({
 			key: '1',
 			name: 'test',
 			created: Date.now(),
