@@ -3,7 +3,7 @@ polyclay-redis
 
 A redis persistence adapter for [Polyclay](https://github.com/ceejbot/polyclay-redis).
 
-[![on npm](http://img.shields.io/npm/v/polyclay-redis.svg?style=flat)](https://www.npmjs.org/package/polyclay-redis)  [![Tests](http://img.shields.io/travis/ceejbot/polyclay-redis.svg?style=flat)](http://travis-ci.org/ceejbot/polyclay-redis) ![Coverage](http://img.shields.io/badge/coverage-97%25-green.svg?style=flat) [![Dependencies](http://img.shields.io/david/ceejbot/polyclay.svg?style=flat)](https://david-dm.org/ceejbot/polyclay-redis)
+[![on npm](http://img.shields.io/npm/v/polyclay-redis.svg?style=flat)](https://www.npmjs.org/package/polyclay-redis)  [![Tests](http://img.shields.io/travis/ceejbot/polyclay-redis.svg?style=flat)](http://travis-ci.org/ceejbot/polyclay-redis) [![Coverage Status](http://img.shields.io/coveralls/ceejbot/polyclay-redis.svg?style=flat)](https://coveralls.io/r/ceejbot/polyclay-redis) [![Dependencies](http://img.shields.io/david/ceejbot/polyclay.svg?style=flat)](https://david-dm.org/ceejbot/polyclay-redis)
 
 ## How-to
 
