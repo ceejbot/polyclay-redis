@@ -8,7 +8,7 @@
     "Kit Cambridge <kitcambridge@me.com>"
   ],
   "dependencies": {
-    "lodash": "~4.11.1",
+    "lodash": "~4.13.0",
     "redis": "~2.5.0-1"
   },
   "devDependencies": {
