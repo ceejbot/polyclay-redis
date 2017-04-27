@@ -12,7 +12,7 @@
     "redis": "~2.5.0-1"
   },
   "devDependencies": {
-    "coveralls": "~2.11.8",
+    "coveralls": "~2.13.1",
     "mocha": "~2.4.5",
     "must": "~0.13.1",
     "nyc": "~6.0.0",
